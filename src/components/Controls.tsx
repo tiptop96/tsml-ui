@@ -5,7 +5,6 @@ import Icon from './Icon';
 import {
   analyticsEvent,
   formatClasses as cx,
-  formatUrl,
   settings,
   strings,
 } from '../helpers';
@@ -96,9 +95,7 @@ export default function Controls({ state, setState, mapbox }: ControlsProps) {
   };
 
   //set search mode dropdown and clear all distances
-  const setMode = (e: React.MouseEvent, mode: 'search' | 'location' | 'me') => {
-    e.preventDefault();
-
+  const setMode = (mode: 'search' | 'location' | 'me') => {
     Object.keys(state.meetings).forEach(slug => {
       state.meetings[slug].distance = undefined;
     });
@@ -123,25 +120,22 @@ export default function Controls({ state, setState, mapbox }: ControlsProps) {
         distance: [],
         latitude: undefined,
         longitude: undefined,
-        mode: mode,
+        mode,
         search: '',
       },
     });
   };
 
   //toggle list/map view
-  const setView = (e: React.MouseEvent, view: 'table' | 'map') => {
-    e.preventDefault();
-    state.input.view = view;
-    setState({ ...state });
-  };
+  const setView = (view: typeof state.input.view) =>
+    setState({ ...state, input: { ...state.input, view } });
 
   return !Object.keys(state.meetings).length ? null : (
-    <div className="controls d-print-none gx-3 gx-md-4 gy-3 row">
-      <div className="col-6 col-lg">
-        <div className="position-relative">
-          <form onSubmit={locationSearch}>
-            <fieldset className="input-group">
+    <form onSubmit={locationSearch}>
+      <fieldset className="controls d-print-none gx-3 gx-md-4 gy-3 row">
+        <div className="col-6 col-lg">
+          <div className="position-relative">
+            <div className="input-group">
               <input
                 aria-label={strings.modes[state.input.mode]}
                 className="form-control"
@@ -173,71 +167,81 @@ export default function Controls({ state, setState, mapbox }: ControlsProps) {
                   type="button"
                 />
               )}
-            </fieldset>
-          </form>
-          {modes.length > 1 && (
-            <div
-              className={cx('dropdown-menu dropdown-menu-end my-1', {
-                show: dropdown === 'search',
-              })}
-            >
-              {modes.map(mode => (
-                <a
-                  className={cx(
-                    'align-items-center dropdown-item d-flex justify-content-between',
-                    {
-                      'active bg-secondary text-white':
-                        state.input.mode === mode,
-                    }
-                  )}
-                  href={formatUrl({ ...state.input, mode })}
-                  key={mode}
-                  onClick={e => setMode(e, mode)}
-                >
-                  {strings.modes[mode]}
-                </a>
-              ))}
             </div>
-          )}
-        </div>
-      </div>
-      {filters.map((filter, index) => (
-        <div className="col-6 col-lg" key={filter}>
-          <Dropdown
-            defaultValue={
-              strings[`${filter}_any` as keyof typeof strings] as string
-            }
-            end={!canShowViews && index === filters.length - 1}
-            filter={filter}
-            open={dropdown === filter}
-            setDropdown={setDropdown}
-            state={state}
-            setState={setState}
-          />
-        </div>
-      ))}
-      {canShowViews && (
-        <div className="col-6 col-lg">
-          <div className="btn-group h-100 w-100" role="group">
-            {views.map(view => (
-              <button
-                aria-label={strings.views[view]}
-                className={cx(
-                  'align-items-center btn btn-outline-secondary d-flex justify-content-center w-100',
-                  {
-                    active: state.input.view === view,
-                  }
-                )}
-                key={view}
-                onClick={e => setView(e, view)}
-                type="button"
+            {modes.length > 1 && (
+              <div
+                className={cx('dropdown-menu dropdown-menu-end my-1', {
+                  show: dropdown === 'search',
+                })}
               >
-                <Icon icon={view} />
-              </button>
-            ))}
+                {modes.map(mode => (
+                  <label
+                    className={cx(
+                      'align-items-center cursor-pointer dropdown-item d-flex justify-content-between',
+                      {
+                        'active bg-secondary text-white':
+                          state.input.mode === mode,
+                      }
+                    )}
+                    key={mode}
+                  >
+                    <input
+                      checked={state.input.mode === mode}
+                      className="d-none"
+                      name="mode"
+                      onChange={e => setMode(mode)}
+                      type="radio"
+                      value={mode}
+                    />
+                    {strings.modes[mode]}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      )}
-    </div>
+        {filters.map((filter, index) => (
+          <div className="col-6 col-lg" key={filter}>
+            <Dropdown
+              defaultValue={
+                strings[`${filter}_any` as keyof typeof strings] as string
+              }
+              end={!canShowViews && index === filters.length - 1}
+              filter={filter}
+              open={dropdown === filter}
+              setDropdown={setDropdown}
+              setState={setState}
+              state={state}
+            />
+          </div>
+        ))}
+        {canShowViews && (
+          <div className="col-6 col-lg">
+            <div className="btn-group h-100 w-100" role="group">
+              {views.map(view => (
+                <label
+                  aria-label={strings.views[view]}
+                  className={cx(
+                    'align-items-center btn btn-outline-secondary cursor-pointer d-flex justify-content-center w-100',
+                    {
+                      active: state.input.view === view,
+                    }
+                  )}
+                  key={view}
+                >
+                  <input
+                    className="d-none"
+                    name="view"
+                    onChange={() => setView(view)}
+                    type="radio"
+                  />
+                  <Icon icon={view} />
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+      </fieldset>
+    </form>
   );
 }

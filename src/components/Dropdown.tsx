@@ -31,28 +31,21 @@ export default function Dropdown({
   const values = state.input[filter];
 
   //set filter: pass it up to parent
-  const setFilter = (
-    e: React.MouseEvent<HTMLButtonElement>,
-    filter: keyof typeof state.indexes,
-    value?: string
-  ) => {
-    e.preventDefault();
-
+  const setFilter = (filter: keyof typeof state.indexes, value?: string) => {
     //add or remove from filters
     if (value) {
-      if (e.metaKey) {
+      //if (e.metaKey) {
+      // @ts-expect-error TODO
+      const index = state.input[filter].indexOf(value);
+      if (index === -1) {
         // @ts-expect-error TODO
-        const index = state.input[filter].indexOf(value);
-        if (index === -1) {
-          // @ts-expect-error TODO
-          state.input[filter].push(value);
-        } else {
-          state.input[filter].splice(index, 1);
-        }
+        state.input[filter].push(value);
       } else {
-        // @ts-expect-error TODO
-        state.input[filter] = [value];
+        state.input[filter].splice(index, 1);
       }
+      //} else {
+      //state.input[filter] = [value];
+      //}
     } else {
       state.input[filter] = [];
     }
@@ -68,40 +61,48 @@ export default function Dropdown({
     setState({ ...state });
   };
 
-  const renderDropdownItem = ({ key, name, slugs, children }: Index) => (
-    <Fragment key={key}>
-      <button
-        className={cx(
-          'align-items-center d-flex dropdown-item justify-content-between',
-          {
-            // @ts-expect-error TODO
-            'bg-secondary text-white': values.includes(key),
-          }
-        )}
-        onClick={e => setFilter(e, filter, key)}
-      >
-        <span>{name}</span>
-        <span
-          aria-label={
-            slugs.length === 1
-              ? strings.match_single
-              : strings.match_multiple.replace(
-                  '%count%',
-                  slugs.length.toString()
-                )
-          }
-          className="badge bg-light border ms-3 text-dark"
+  const renderDropdownItem = ({ key, name, slugs, children }: Index) => {
+    // @ts-expect-error TODO
+    const checked = values.includes(key);
+    return (
+      <Fragment key={key}>
+        <button
+          className={cx(
+            'align-items-center d-flex dropdown-item gap-2 justify-content-between',
+            {
+              'bg-secondary text-white': checked,
+            }
+          )}
+          onClick={() => setFilter(filter, key)}
         >
-          {slugs.length}
-        </span>
-      </button>
-      {!!children?.length && (
-        <div className="children">
-          {children.map(child => renderDropdownItem(child))}
-        </div>
-      )}
-    </Fragment>
-  );
+          <input
+            type="checkbox"
+            checked={checked}
+            className="form-check-input m-0"
+          />
+          <span className="flex-grow-1">{name}</span>
+          <span
+            aria-label={
+              slugs.length === 1
+                ? strings.match_single
+                : strings.match_multiple.replace(
+                    '%count%',
+                    slugs.length.toString()
+                  )
+            }
+            className="badge bg-light border ms-3 text-dark"
+          >
+            {slugs.length}
+          </span>
+        </button>
+        {!!children?.length && (
+          <div className="children">
+            {children.map(child => renderDropdownItem(child))}
+          </div>
+        )}
+      </Fragment>
+    );
+  };
 
   //separate section above the other items
   const special = {
@@ -131,7 +132,7 @@ export default function Dropdown({
           className={cx('dropdown-item', {
             'active bg-secondary text-white': !values.length,
           })}
-          onClick={e => setFilter(e, filter, undefined)}
+          onClick={() => setFilter(filter, undefined)}
         >
           {defaultValue}
         </button>
