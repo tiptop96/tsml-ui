@@ -37,6 +37,7 @@ export function loadMeetingData(
   //loop through each entry
   flattenDays(data).forEach(meeting => {
     const {
+      city,
       conference_phone,
       contact_1_email,
       contact_1_name,
@@ -69,11 +70,6 @@ export function loadMeetingData(
       return warn('duplicate slug', meeting);
     }
 
-    //conference url
-    const conference_provider = meeting.conference_url
-      ? formatConferenceProvider(meeting.conference_url)
-      : undefined;
-
     let {
       address,
       conference_url,
@@ -83,12 +79,11 @@ export function loadMeetingData(
       regions,
     } = meeting;
 
-    if (meeting.conference_url) {
-      if (conference_provider) {
-        conference_url = meeting.conference_url;
-      } else {
-        warn('unknown conference_url', meeting);
-      }
+    //conference url
+    const conference_provider = formatConferenceProvider(conference_url);
+
+    if (conference_url && !conference_provider) {
+      warn('unknown conference_url', meeting);
     }
 
     if (!conference_url && conference_url_notes) {
@@ -102,7 +97,8 @@ export function loadMeetingData(
     //creates formatted_address if necessary
     if (!formatted_address) {
       formatted_address = [
-        meeting.address,
+        address,
+        city,
         [meeting.state, meeting.postal_code].join(' ').trim(),
         meeting.country,
       ]
@@ -114,31 +110,38 @@ export function loadMeetingData(
       }
     }
 
-    //used in table
-    if (!address) {
-      address = formatAddress(formatted_address);
-    }
-
     //check if approximate
-    let approximate, coordinates;
-    if (
-      meeting.coordinates &&
-      [1, 3].includes((meeting.coordinates.match(/,/g) || []).length)
-    ) {
-      coordinates = meeting.coordinates.split(',');
-      approximate = coordinates.length !== 2;
-      meeting.latitude = meeting.approximate ? undefined : coordinates[0];
-      meeting.longitude = meeting.approximate ? undefined : coordinates[1];
-    } else if (typeof meeting.approximate === 'string') {
+    let approximate: boolean;
+    let coordinates: number[];
+
+    if (typeof meeting.approximate === 'string') {
+      //first check if approximate is specified
       approximate = meeting.approximate.toLowerCase() === 'yes';
     } else if (typeof meeting.approximate === 'boolean') {
       approximate = meeting.approximate;
+    } else if (
+      meeting.coordinates &&
+      [1, 3].includes((meeting.coordinates.match(/,/g) || []).length)
+    ) {
+      //then check if coordinates
+      coordinates = meeting.coordinates
+        .split(',')
+        .map(coord => parseFloat(coord));
+      approximate = coordinates.length !== 2;
+      meeting.latitude = approximate ? undefined : coordinates[0];
+      meeting.longitude = approximate ? undefined : coordinates[1];
     } else {
+      //or if no address
       approximate = !address;
     }
 
     //if approximate is specified, it overrules formatAddress
-    if (approximate) address = undefined;
+    if (approximate) {
+      address = undefined;
+    } else if (!address) {
+      //used in table
+      address = formatAddress(formatted_address);
+    }
 
     //types
     let types: MeetingType[] = Array.isArray(meeting.types)
@@ -354,6 +357,9 @@ export function loadMeetingData(
     //optional updated date
     let updated;
     if (meeting.updated) {
+      if (meeting.updated.includes(' ')) {
+        meeting.updated = meeting.updated.split(' ')[0];
+      }
       updated = DateTime.fromSQL(meeting.updated).setZone(timezone);
       if (!updated.isValid) {
         warn(`invalid updated (${updated.invalidExplanation})`, meeting);
