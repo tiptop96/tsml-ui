@@ -2,21 +2,10 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { DateTime } from 'luxon';
 
-import Map from './Map';
+import Map from '../Map';
+import { mockState } from './mocks';
 
 describe('<Map />', () => {
-  const mockState = {
-    meetings: {
-      'foo': {
-        isInPerson: true,
-        latitude: 40.712776,
-        longitude: -74.005974,
-        name: 'First Meeting',
-        start: DateTime.now(),
-      },
-    },
-  };
-
   //save copy of original
   const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
 
@@ -69,9 +58,9 @@ describe('<Map />', () => {
     };
     const { container } = render(
       <Map
-        filteredSlugs={Object.keys(mockStateMultiple.meetings)}
+        filteredSlugs={Object.keys(mockState.meetings)}
         listMeetingsInPopup={true}
-        state={mockStateMultiple}
+        state={mockState}
         setState={jest.fn()}
         mapbox="pk.123456"
       />

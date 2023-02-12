@@ -1,33 +1,12 @@
+import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import Controls from './Controls';
-import { strings } from '../helpers';
+
+import Controls from '../Controls';
+import { strings } from '../../helpers';
+import { mockState } from './mocks';
 
 describe('<Controls />', () => {
   jest.useFakeTimers();
-
-  const mockState = {
-    capabilities: {
-      coordinates: true,
-      geolocation: true,
-      region: true,
-      distance: true,
-    },
-    indexes: {
-      distance: [{ name: 'Foo', key: 'foo', slugs: [] }],
-      region: [{ name: 'Bar', key: 'bar', slugs: [] }],
-    },
-    input: {
-      mode: 'search',
-      distance: [],
-      region: [],
-      search: '',
-      view: 'list',
-    },
-    meetings: {
-      foo: { search: 'foo' },
-      bar: { search: 'bar' },
-    },
-  };
 
   const mockSetState = jest.fn();
 
@@ -80,7 +59,9 @@ describe('<Controls />', () => {
 
     //try submitting
     const form = input.closest('form');
-    fireEvent.submit(form);
+    if (form) {
+      fireEvent.submit(form);
+    }
 
     expect(mockSetState).toBeCalledTimes(2);
 
@@ -105,7 +86,9 @@ describe('<Controls />', () => {
 
     //submit form
     const form = input.closest('form');
-    fireEvent.submit(form);
+    if (form) {
+      fireEvent.submit(form);
+    }
 
     //toggle
     const button = screen.getByRole('button', { name: modes.location });

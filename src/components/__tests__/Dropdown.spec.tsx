@@ -1,28 +1,13 @@
+import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import Dropdown from './Dropdown';
-import { strings } from '../helpers';
+
+import Dropdown from '../Dropdown';
+import { strings } from '../../helpers';
+import { mockState, mockSetState, mockSetDropdown } from './mocks';
 
 describe('<Dropdown />', () => {
   const filter = 'type';
   const defaultValue = strings[`${filter}_any`];
-  const mockState = {
-    input: {
-      [filter]: [],
-    },
-    indexes: {
-      [filter]: [
-        { key: 'foo', name: 'Foo', slugs: [] },
-        {
-          key: 'bar',
-          name: 'Bar',
-          slugs: [],
-          children: [{ key: 'baz', name: 'Baz', slugs: [] }],
-        },
-        { key: 'online', name: 'Online', slugs: [] },
-        { key: 'in-person', name: 'In-Person', slugs: [] },
-      ],
-    },
-  };
 
   it('renders', () => {
     render(
@@ -32,7 +17,7 @@ describe('<Dropdown />', () => {
         end={false}
         defaultValue={defaultValue}
         setDropdown={jest.fn()}
-        state={{ ...mockState, input: { [filter]: ['bar'] } }}
+        state={mockState}
         setState={jest.fn()}
       />
     );
@@ -40,8 +25,6 @@ describe('<Dropdown />', () => {
   });
 
   it('opens', () => {
-    const mockSetDropdown = jest.fn();
-
     render(
       <Dropdown
         filter={filter}
@@ -63,9 +46,6 @@ describe('<Dropdown />', () => {
   });
 
   it('has working links', async () => {
-    const mockSetDropdown = jest.fn();
-    const mockSetState = jest.fn();
-
     render(
       <Dropdown
         defaultValue={defaultValue}

@@ -1,5 +1,8 @@
+import React from 'react';
 import { screen, render } from '@testing-library/react';
-import Title from './Title';
+
+import Title from '../Title';
+import { mockState } from './mocks';
 
 function assertHeadingAndTitleHas(title: string) {
   const heading = screen.getByRole('heading', { level: 1 });
@@ -9,19 +12,19 @@ function assertHeadingAndTitleHas(title: string) {
 
 describe('<Title />', () => {
   it('returns null without indices or input', () => {
-    const { container } = render(<Title state={{}} />);
+    const { container } = render(<Title state={mockState} />);
     expect(container.firstChild).toBeNull();
   });
 
   it('works with meeting key', () => {
-    render(<Title state={{ indexes: {}, input: {} }} />);
+    render(<Title state={mockState} />);
     assertHeadingAndTitleHas('Meetings');
   });
 
   it('works with search mode and search term', () => {
     render(
       <Title
-        state={{ indexes: {}, input: { mode: 'search', search: 'foo' } }}
+        state={{ ...mockState, input: { ...mockState.input, search: 'foo' } }}
       />
     );
     assertHeadingAndTitleHas('Meetings with ‘foo’');
@@ -30,7 +33,10 @@ describe('<Title />', () => {
   it('works with location mode and search term', () => {
     render(
       <Title
-        state={{ indexes: {}, input: { mode: 'location', search: 'foo' } }}
+        state={{
+          ...mockState,
+          input: { ...mockState.input, mode: 'location', search: 'foo' },
+        }}
       />
     );
     assertHeadingAndTitleHas('Meetings near ‘foo’');
@@ -39,10 +45,7 @@ describe('<Title />', () => {
   it('works with one key', () => {
     render(
       <Title
-        state={{
-          indexes: { weekday: [{ key: 0, name: 'foo' }] },
-          input: { weekday: [0] },
-        }}
+        state={{ ...mockState, input: { ...mockState.input, search: 'foo' } }}
       />
     );
     assertHeadingAndTitleHas('foo Meetings');
@@ -52,11 +55,8 @@ describe('<Title />', () => {
     render(
       <Title
         state={{
-          indexes: {
-            weekday: [{ key: 0, name: 'foo' }],
-            region: [{ key: 0, name: 'bar' }],
-          },
-          input: { weekday: [0], region: [0] },
+          ...mockState,
+          input: { ...mockState.input, type: ['foo'], region: ['bar'] },
         }}
       />
     );
@@ -67,12 +67,13 @@ describe('<Title />', () => {
     render(
       <Title
         state={{
-          indexes: {
-            weekday: [{ key: 0, name: 'foo' }],
-            region: [{ key: 0, name: 'bar' }],
-            time: [{ key: 0, name: 'baz' }],
+          ...mockState,
+          input: {
+            ...mockState.input,
+            weekday: ['foo'],
+            type: ['baz'],
+            region: ['bar'],
           },
-          input: { weekday: [0], region: [0], time: [0] },
         }}
       />
     );
@@ -83,13 +84,11 @@ describe('<Title />', () => {
     render(
       <Title
         state={{
-          indexes: {
-            weekday: [
-              { key: 0, name: 'foo' },
-              { key: 1, name: 'bar' },
-            ],
+          ...mockState,
+          input: {
+            ...mockState.input,
+            type: ['foo', 'bar'],
           },
-          input: { weekday: [0, 1] },
         }}
       />
     );

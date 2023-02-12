@@ -1,23 +1,21 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import Alert from './Alert';
-import { strings } from '../helpers';
+
+import Alert from '../Alert';
+import { mockState, mockSetState } from './mocks';
 
 //TODO: These types can be much better once AppState types are defined.
 
 describe('<Alert />', () => {
   it('renders null with no alerts or errors', () => {
-    const { container } = render(<Alert state={{}} setState={jest.fn()} />);
+    const { container } = render(
+      <Alert state={mockState} setState={jest.fn()} />
+    );
     expect(container.firstChild).toBeNull();
   });
 
   it('works with error state', () => {
-    render(
-      <Alert
-        state={{ error: 'an error was encountered loading the data' }}
-        setState={jest.fn()}
-      />
-    );
+    render(<Alert state={mockState} setState={jest.fn()} />);
 
     const text = /an error was encountered loading the data/i;
 
@@ -25,26 +23,6 @@ describe('<Alert />', () => {
   });
 
   it('works with clearing filters with no results', async () => {
-    const mockState = {
-      alert: strings.no_results,
-      input: {
-        distance: [],
-        region: ['foo'],
-        search: 'bar',
-        time: ['baz'],
-        type: ['qux'],
-        weekday: ['0'],
-      },
-      indexes: {
-        region: [{ key: 'foo', name: 'Foo' }],
-        time: [{ key: 'baz', name: 'Baz' }],
-        type: [{ key: 'qux', name: 'Qux' }],
-        weekday: [{ key: '0', name: 'Monday' }],
-      },
-    };
-
-    const mockSetState = jest.fn();
-
     render(<Alert state={mockState} setState={mockSetState} />);
 
     const text = /No meetings were found matching the selected criteria./i;
